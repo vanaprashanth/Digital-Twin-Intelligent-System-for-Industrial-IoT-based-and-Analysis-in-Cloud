@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Graph and Alerts</title>
+    </head>
+    <body>
+            <div style="width: 800px;" id="appendPlace">
+                <h4>Temperature (Above Threshold: <span id="tempAlert"></span>) (Threshold: <span id="tempThresh"></span>)</h4>
+                <p>Next predicted value is between: <span id="tempPredictLower"></span> and <span id="tempPredictUpper"></span></p>
+                <canvas id="myChart"></canvas>
+                <h4>Humidity (Above Threshold: <span id="humidAlert"></span>) (Threshold: <span id="humidThresh"></span>)</h4>
+                <p>Next predicted value is between: <span id="humidPredictLower"></span> and <span id="humidPredictUpper"></span></p>
+                <canvas id="myChart2"></canvas>
+                <h4>PIR (Above Threshold: <span id="pirAlert"></span>) (Threshold: <span id="pirThresh"></span>)</h4>
+                <p>Next predicted value is between: <span id="pirPredictLower"></span> and <span id="pirPredictUpper"></span></p>
+                <canvas id="myChart3"></canvas>
+                <h4>Hall Sensor (Above Threshold: <span id="hallAlert"></span>) (Threshold: <span id="hallThresh"></span>)</h4>
+                <p>Next predicted value is between: <span id="hallPredictLower"></span> and <span id="hallPredictUpper"></span></p>
+                <canvas id="myChart4"></canvas>
+                <h4>Accelarometer (Above Threshold: <span id="accelAlert"></span>) (Threshold: <span id="accelThresh"></span>)</h4>
+                <p>Next predicted value is between: <span id="accelPredictLower"></span> and <span id="accelPredictUpper"></span></p>
+                <canvas id="myChart5"></canvas>
+            </div>
+
+
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+        
+        <script>
+            const ctx = document.getElementById('myChart');
+            const ctx2 = document.getElementById('myChart2');
+            const ctx3 = document.getElementById('myChart3');
+            const ctx4 = document.getElementById('myChart4');
+            const ctx5 = document.getElementById('myChart5');
+            let tempData = [];
+            let humData = [];
+            let pirData = [];
+            let hallData = [];
+            let accelData = [];
+            let tempChart;
+            let humidChart;
+            let pirChart;
+            let hallChart;
+            let accelChart;
+            async function getData() {
+                const response = await fetch('http://localhost:5001/get_data');
+                tempChart?.destroy();
+                humidChart?.destroy();
+                pirChart?.destroy();
+                hallChart?.destroy();
+                accelChart?.destroy();
+                const data = await response.json();
+                console.log(data);
+                tempData = data.temp.map((item) => {
+                    return {
+                        x: new Date(item.time * 1000),
+                        y: item.value
+                    }
+                });
+                humData = data.humid.map((item) => {
+                    return {
+                        x: new Date(item.time * 1000),
+                        y: item.value
+                    }
+                });
+                pirData = data.pir.map((item) => {
+                    return {
+                        x: new Date(item.time * 1000),
+                        y: item.value
+                    }
+                });
+                hallData = data.hall.map((item) => {
+                    return {
+                        x: new Date(item.time * 1000),
+                        y: item.value
+                    }
+                });
+                accelData = data.accel.map((item) => {
+                    return {
+                        x: new Date(item.time * 1000),
+                        a: item.x,
+                        b: item.y,
+                        c: item.z
+                    }
+                });
+                document.getElementById('tempPredictLower').innerText = data?.temp_pred?.lower_bounds;
+                document.getElementById('tempPredictUpper').innerText = data?.temp_pred?.upper_bounds;
+                document.getElementById('humidPredictLower').innerText = data?.humid_pred?.lower_bounds;
+                document.getElementById('humidPredictUpper').innerText = data?.humid_pred?.upper_bounds;
+                document.getElementById('pirPredictLower').innerText = data?.pir_pred?.lower_bounds;
+                document.getElementById('pirPredictUpper').innerText = data?.pir_pred?.upper_bounds;
+                document.getElementById('hallPredictLower').innerText = data?.hall_pred?.lower_bounds;
+                document.getElementById('hallPredictUpper').innerText = data?.hall_pred?.upper_bounds;
+                document.getElementById('accelPredictLower').innerText = data?.accel_pred?.lower_bounds;
+                document.getElementById('accelPredictUpper').innerText = data?.accel_pred?.upper_bounds;
+                console.log(tempData);
+                console.log(humData);
+                console.log(pirData);
+                console.log(hallData);
+                console.log(accelData);
+                tempChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Temperature',
+                            data: tempData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                type: 'time'
+                            }
+                        }
+                    }
+                });
+                humidChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Humidity',
+                            data: humData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                type: 'time'
+                            }
+                        }
+                    }
+                });
+                pirChart = new Chart(ctx3, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'PIR',
+                            data: pirData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                type: 'time'
+                            }
+                        }
+                    }
+                });
+                hallChart = new Chart(ctx4, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Hall',
+                            data: hallData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                type: 'time'
+                            }
+                        }
+                    }
+                });
+                accelChart = new Chart(ctx5, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'X Axis',
+                            data: accelData.map((item) => {
+                                return {
+                                    x: item.x,
+                                    y: item.a
+                                }
+                            }),
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        }, {
+                            label: 'Y Axis',
+                            data: accelData.map((item) => {
+                                return {
+                                    x: item.x,
+                                    y: item.b
+                                }
+                            }),
+                            borderColor: 'rgb(255, 99, 192)',
+                            tension: 0.1
+                        }, {
+                            label: 'Z Axis',
+                            data: accelData.map((item) => {
+                                return {
+                                    x: item.x,
+                                    y: item.c
+                                }
+                            }),
+                            borderColor: 'rgb(255, 55, 132)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                type: 'time'
+                            }
+                        }
+                    }
+                });
+                const resAlerts = await fetch('http://localhost:5001/alerts');
+                const alerts = await resAlerts.json();
+                console.log(alerts);
+                document.getElementById('tempAlert').innerText = alerts.temp ? 'Yes' : 'No';
+                document.getElementById('humidAlert').innerText = alerts.humid ? 'Yes' : 'No';
+                document.getElementById('pirAlert').innerText = alerts.pir ? 'Yes' : 'No';
+                document.getElementById('hallAlert').innerText = alerts.hall ? 'Yes' : 'No';
+                document.getElementById('accelAlert').innerText = alerts.accel ? 'Yes' : 'No';
+
+                const resThreshold = await fetch('http://localhost:5001/get_threshold');
+                const threshold = await resThreshold.json();
+                console.log(threshold);
+                document.getElementById('tempThresh').innerText = threshold.temp;
+                document.getElementById('humidThresh').innerText = threshold.humid;
+                document.getElementById('pirThresh').innerText = threshold.pir;
+                document.getElementById('hallThresh').innerText = threshold.hall;
+                document.getElementById('accelThresh').innerText = threshold.accel;
+            }
+            getData();
+            setInterval(getData, 10000);
+        </script>
+    </body>
+</html>
